@@ -52,22 +52,10 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
 
   @override
   void initState() {
-    print("INIT ${widget.id}");
     super.initState();
     process();
   }
 
-  @override
-    void didChangeDependencies() {
-      super.didChangeDependencies();
-      print("DID CHANGE ${widget.id}");
-    }
-
-  @override
-  void dispose() {
-    super.dispose();
-    print("DISPOSE ${widget.id}");
-  }
 
   Future<void> _showDetails(BuildContext context) {
     return showDialog(context: context, builder: (context) {

@@ -54,7 +54,19 @@ class _ImageScreenState extends ConsumerState<ImageScreen> {
               ),
               secondChild: TextButton(
                 onPressed: () {
-                  ref.read(storedImageController.notifier).removeAll();
+                  showDialog(context: context, builder: (context) {
+                    return AlertDialog(
+                      title: const Text("Remove all"),
+                      content: const Text("This cannot be undone."),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
+                        TextButton(onPressed: () {
+                          Navigator.of(context).pop();
+                          ref.read(storedImageController.notifier).removeAll();
+                        }, child: const Text("Ok")),
+                      ],
+                    );
+                  });
                 },
                 child: const Text("Remove all"),
               ),

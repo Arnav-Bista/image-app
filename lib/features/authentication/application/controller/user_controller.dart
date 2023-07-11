@@ -34,7 +34,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
 
   Future<bool> userExists(String username) async {
     final result = _userRepository().getUser(username);
-    return result.isLeft;
+    return result.isRight;
   }
 
 
