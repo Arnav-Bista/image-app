@@ -80,4 +80,12 @@ class StoredImageController extends StateNotifier<Favourites?> {
     save();
   }
 
+  void removeAll() async {
+    if(state == null) {
+      await getFavourites();
+    }
+    state = Favourites(data: {});
+    save();
+  }
+
 }

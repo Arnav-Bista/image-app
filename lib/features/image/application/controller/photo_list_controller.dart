@@ -21,4 +21,9 @@ class PhotoListController extends StateNotifier<List<Future<Either<MyError, Phot
     }
     state = state.toList();
   }
+
+  Future<void> refresh(int items) async {
+    state = [];
+    populate(items);
+  }
 }

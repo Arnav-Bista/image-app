@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:images/features/image/application/controller/photo_list_controller.dart';
 import 'package:images/features/image/application/controller/stored_image_controller.dart';
 import 'package:images/features/image/infrastructure/model/photo.dart';
 import 'package:images/features/image/infrastructure/repository/get_random_image.dart';
@@ -35,8 +36,31 @@ class _ImageScreenState extends ConsumerState<ImageScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text("Image View", textAlign: TextAlign.center),
+            AnimatedCrossFade(
+              firstChild: TextButton(
+                onPressed: () async {
+                  ref.read(loadingProvider.notifier).state = true;
+                  // await Future.delayed(const Duration(milliseconds: 1));
+                  await ref.read(photoListController.notifier).refresh(verticalItemCount * horizontalItemCount);
+                  ref.read(loadingProvider.notifier).state = false;
+                  setState(() {
+                                      
+                                    });
+                },
+                child: const Text("Refresh"),
+              ),
+              secondChild: TextButton(
+                onPressed: () {
+                  ref.read(storedImageController.notifier).removeAll();
+                },
+                child: const Text("Remove all"),
+              ),
+                crossFadeState: network ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                duration: const Duration(milliseconds: 150),
+            ),
             TextButton(
               onPressed: () {
                 setState(() {

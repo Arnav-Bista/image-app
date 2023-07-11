@@ -11,12 +11,10 @@ class PhotoCard extends ConsumerStatefulWidget {
     super.key, 
     required this.id, 
     required this.result,
-    required this.onFavourite,
   });
 
   final int id;
   final Future<Either<MyError, Photo>> result;
-  final Function onFavourite;
 
   @override
   ConsumerState<PhotoCard> createState() => _PhotoCardState();
@@ -30,6 +28,10 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
 
 
   Future<void> process() async {
+    // setState(() {
+    //   isLoading = true;
+    // });
+    // await Future.delayed(const Duration(milliseconds: 500));
     Either<MyError, Photo> res = await widget.result;
     if(!mounted) {
       return;
@@ -50,8 +52,21 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
 
   @override
   void initState() {
+    print("INIT ${widget.id}");
     super.initState();
     process();
+  }
+
+  @override
+    void didChangeDependencies() {
+      super.didChangeDependencies();
+      print("DID CHANGE ${widget.id}");
+    }
+
+  @override
+  void dispose() {
+    super.dispose();
+    print("DISPOSE ${widget.id}");
   }
 
   Future<void> _showDetails(BuildContext context) {

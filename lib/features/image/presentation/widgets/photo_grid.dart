@@ -7,7 +7,7 @@ import 'package:images/features/image/presentation/widgets/photo_card.dart';
 import 'package:images/features/image/presentation/widgets/saved_photo_card.dart';
 
 
-final _loadingProvider = StateProvider((ref) => false);
+final loadingProvider = StateProvider((ref) => false);
 
 class PhotoGrid extends ConsumerStatefulWidget {
   const PhotoGrid({super.key, required this.photoSize, required this.itemCount, required this.network});
@@ -24,10 +24,10 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
 
   Future<void> populate() async {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async { 
-      ref.read(_loadingProvider.notifier).state = true;
+      ref.read(loadingProvider.notifier).state = true;
       await ref.read(photoListController.notifier).populate(widget.itemCount);
       await ref.read(storedImageController.notifier).getFavourites();
-      ref.read(_loadingProvider.notifier).state = false;
+      ref.read(loadingProvider.notifier).state = false;
 
     });
     print("population");
@@ -57,8 +57,9 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(_loadingProvider);
+    final isLoading = ref.watch(loadingProvider);
     final controller = ref.watch(photoListController);
+    // print(controller.toString() + "1231231");
     final storedController = ref.watch(storedImageController);
     if(storedController != null) {
       storedData = storedController.toList();
@@ -77,7 +78,7 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
             controller: sc,
             itemBuilder: (contex, index) {
               if (widget.network) {
-                return PhotoCard(result: controller[index], id: index, onFavourite: () {});
+                return PhotoCard(key: ValueKey(controller[index]), result: controller[index], id: index);
               }
               else {
                 return SavedPhotoCard(id: index, result: storedData[index]);
