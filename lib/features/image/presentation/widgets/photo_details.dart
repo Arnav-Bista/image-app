@@ -6,6 +6,7 @@ import 'package:gal/gal.dart';
 import 'package:images/features/image/application/controller/stored_image_controller.dart';
 import 'package:images/features/image/infrastructure/model/photo.dart';
 import 'package:images/features/image/presentation/widgets/photo_full_screen.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
@@ -36,24 +37,41 @@ class _PhotoDetailsState extends ConsumerState<PhotoDetails> {
       isDownloading = true;
     });
     String message = "";
-    final imagePath = "${Directory.systemTemp.path}/${widget.photo.getName()}";
-    final file = File(imagePath);
+    // final imagePath = "${Directory.systemTemp.path}/${widget.photo.getName()}";
+    // final file = File(imagePath);
     try{
-
-      if(!await Gal.hasAccess()) {
-        await Gal.requestAccess();
+      Directory? directory;
+      if (Platform.isIOS) {
+        directory = await getApplicationDocumentsDirectory();
       }
-      if(await Gal.hasAccess()) {
+      else {
+        directory = Directory('/storage/emulated/0/Download');
+        if(!await directory.exists()) {
+          directory = await getExternalStorageDirectory();
+        }
+      }
+        final path = "${directory!.path}/${widget.photo.getName()}.jpg";
+        final file = File(path);
         final res = await http.get(Uri.parse(widget.photo.src));
         if(res.statusCode == 200) {
           await file.writeAsBytes(res.bodyBytes);
-          Gal.putImage(imagePath);
           message = "Downloaded!";
         }
         else {
           message = "Network Error";
         }
-      }
+      // if(await Gal.requestAccess()) {
+      //   final res = await http.get(Uri.parse(widget.photo.src));
+      //   if(res.statusCode == 200) {
+      //     await file.writeAsBytes(res.bodyBytes);
+      //     Gal.putImage(imagePath);
+      //     message = "Downloaded!";
+      //   }
+      //   else {
+      //     message = "Network Error";
+      //   }
+      // }
+
     }
     catch(e) {
       message = e.toString();

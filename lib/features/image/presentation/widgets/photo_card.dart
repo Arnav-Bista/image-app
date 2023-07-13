@@ -24,6 +24,7 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
 
   bool isLoading = true;
   bool isError = false;
+  String errorMessage = "";
   late Photo photo;
 
 
@@ -44,6 +45,7 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
     }
     else{
       isError = true;
+      errorMessage = res.left.errorMessage;
     }
     setState(() {
       isLoading = false;
@@ -65,26 +67,44 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: isError || isLoading 
-      ? null 
-      : () {
-        _showDetails(context);
-      },
-      child: SizedBox(
-               child: Card(
-                 child: isLoading 
-                 ? const Padding(
-                   padding: EdgeInsets.all(25),
-                   child: CircularProgressIndicator.adaptive()
-                 )
-                 : isError ?
-                 const Center(
-                   child: Icon(Icons.error)
-                 )
-                 : photo.image
-               ),
-             ),
-    );
+    final storeController = ref.read(storedImageController);
+    return SizedBox(
+      child: Card(
+        child: isLoading 
+        ? const Padding(
+          padding: EdgeInsets.all(25),
+          child: CircularProgressIndicator.adaptive()
+        )
+        : isError ?
+        Center(
+          child: Text(errorMessage, softWrap: true, style: TextStyle(fontSize: 11),)
+        )
+        : 
+        Stack(
+          children: [
+            photo.image,
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: isError || isLoading 
+                ? null 
+                : () {
+                  _showDetails(context);
+                },
+                onLongPress: () {
+                  if(!photo.favourite) {
+                    storeController!.addPhoto(photo);
+                    photo.favourite = true;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Added to favourites"))
+                    );
+                  }
+                },
+              ),
+            ),
+            ]
+                ),
+            ),
+            );
   }
 }

@@ -5,7 +5,9 @@ import 'package:images/features/image/application/controller/stored_image_contro
 import 'package:images/features/image/infrastructure/model/photo.dart';
 import 'package:images/features/image/presentation/widgets/photo_card.dart';
 import 'package:images/features/image/presentation/widgets/saved_photo_card.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+final photoSelectionMode = StateProvider((ref) => false);
 
 final loadingProvider = StateProvider((ref) => false);
 
@@ -34,22 +36,26 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
   }
 
   bool canUpdate = true;
-  late ScrollController sc;
 
   @override
   void initState() {
     super.initState();
     populate();
-    sc = ScrollController()..addListener(_scrollAction);
   }
 
-  void _scrollAction() async {
-    if (widget.network && sc.position.extentAfter < 100 && canUpdate) {
-      canUpdate = false;
-      await ref.read(photoListController.notifier).populate(widget.itemCount);
-      canUpdate = true;
-    }
+  RefreshController _refreshController = RefreshController(initialRefresh: false);
+
+  void _onRefresh() async {
+    await ref.read(photoListController.notifier).refresh(widget.itemCount);
+    _refreshController.refreshCompleted();
   }
+
+  void _onLoading() async {
+    await populate();
+    _refreshController.loadComplete();
+  }
+
+
 
 
   List<Photo> storedData = [];
@@ -67,24 +73,29 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
     // storedData = ref.read(storedImageController)!.toList();
     return isLoading ? const Center(child: CircularProgressIndicator())
         : Scrollbar(
-          controller: sc,
           thickness: 8,
           interactive: true,
-          child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: widget.photoSize,
+          child: SmartRefresher(
+            controller: _refreshController,
+            enablePullUp: widget.network,
+            enablePullDown: widget.network,
+            onRefresh: _onRefresh,
+            onLoading: _onLoading,
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: widget.photoSize,
+              ),
+              itemCount: widget.network ? controller.length : storedData.length,
+              itemBuilder: (contex, index) {
+                if (widget.network) {
+                  return PhotoCard(key: ValueKey(controller[index]), result: controller[index], id: index);
+                }
+                else {
+                  return SavedPhotoCard(id: index, result: storedData[index]);
+                }
+              },
             ),
-            itemCount: widget.network ? controller.length : storedData.length,
-            controller: sc,
-            itemBuilder: (contex, index) {
-              if (widget.network) {
-                return PhotoCard(key: ValueKey(controller[index]), result: controller[index], id: index);
-              }
-              else {
-                return SavedPhotoCard(id: index, result: storedData[index]);
-              }
-            },
           ),
-        );
+          );
   }
 }

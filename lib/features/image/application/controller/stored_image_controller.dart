@@ -1,4 +1,6 @@
 
+import 'dart:collection';
+
 import 'package:either_dart/either.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:images/core/widgets/my_error.dart';
@@ -16,6 +18,7 @@ class StoredImageController extends StateNotifier<Favourites?> {
 
   final StateNotifierProviderRef<StoredImageController, Favourites?> ref;
 
+  Set<int> deletionArea = HashSet();
 
   IStoredImageRepository _storedImageRepository() => ref.read(storedImageRepository);
   IUserRepository _userRepository() => ref.read(userRepository);
@@ -72,6 +75,14 @@ class StoredImageController extends StateNotifier<Favourites?> {
     save();
   }
 
+  void removeById(int id) async {
+    if(state == null) {
+      await getFavourites();
+    }
+    state!.removeById(id);
+    save();
+  }
+
   void add(Photo photo) async {
     if(state == null) {
       await getFavourites();
@@ -86,6 +97,31 @@ class StoredImageController extends StateNotifier<Favourites?> {
     }
     state = Favourites(data: {});
     save();
+  }
+
+  void addToDeletionArea(int id) {
+    deletionArea.add(id);
+  }
+
+  void deleteDeletionArea() async {
+    if(state == null) {
+      await getFavourites();
+    }
+    for(int id in deletionArea) {
+      state!.removeById(id);
+    }
+    clearDeletionArea();
+    state = Favourites(data: state!.data);
+    print(state!.data);
+    save();
+  }
+
+  void removeFromDeletionArea(int id) {
+    deletionArea.remove(id);
+  }
+
+  void clearDeletionArea() {
+    deletionArea = HashSet();
   }
 
 }
