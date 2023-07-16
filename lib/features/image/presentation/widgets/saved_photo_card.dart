@@ -48,7 +48,14 @@ class _SavedPhotoCardState extends ConsumerState<SavedPhotoCard> {
       child: Card(
         child: Stack(
           children: [
-            widget.result.image,
+            Image(
+            image: widget.result.image.image,
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: Icon(Icons.error)
+              );
+            },
+            ),
             selected ? 
             Center(
               child: Opacity(

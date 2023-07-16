@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:images/features/authentication/presentation/authentication.dart';
 import 'package:images/features/image/application/controller/photo_list_controller.dart';
 import 'package:images/features/image/application/controller/stored_image_controller.dart';
 import 'package:images/features/image/infrastructure/model/photo.dart';
@@ -52,11 +53,35 @@ class _ImageScreenState extends ConsumerState<ImageScreen> {
           selectionMode 
           ? const AppBarButtons()
           : network 
-          ? const SizedBox() 
+          ? TextButton(
+            onPressed: () {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Authentication()));
+            },
+            child: Text(
+              "Logout",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error
+              ),
+              ),
+            ) 
           : ref.read(storedImageController)?.data.isEmpty ?? true
           ? const SizedBox()
           : TextButton(
-            onPressed: () => storedImage.removeAll(),
+            onPressed: () {
+            showDialog(context: context, builder: (context) {
+              return AlertDialog(
+                title: const Text("Remove"),
+                content: const Text("Remove all?"),
+                actions: [
+                  TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("No")),
+                  TextButton(onPressed: () {
+                    Navigator.of(context).pop();
+                    storedImage.removeAll();
+                  }, child: const Text("Yes")),
+                ],
+              );
+            });
+            },
             child: Text(
               "Remove all",
               textAlign: TextAlign.end,

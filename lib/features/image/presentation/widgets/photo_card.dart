@@ -72,39 +72,55 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
       child: Card(
         child: isLoading 
         ? const Padding(
-          padding: EdgeInsets.all(25),
+          padding: EdgeInsets.all(50),
           child: CircularProgressIndicator.adaptive()
         )
         : isError ?
         Center(
-          child: Text(errorMessage, softWrap: true, style: TextStyle(fontSize: 11),)
+          child: GestureDetector(
+            child: const Icon(Icons.error),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title:  const Text("Error"),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Ok"))
+                    ],
+                    content: Text(errorMessage, softWrap: true, style: const TextStyle(fontSize: 11),)
+                  );
+                }
+              );
+            },
+          )
         )
         : 
-        Stack(
-          children: [
-            photo.image,
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: isError || isLoading 
-                ? null 
-                : () {
-                  _showDetails(context);
-                },
-                onLongPress: () {
-                  if(!photo.favourite) {
-                    storeController!.addPhoto(photo);
-                    photo.favourite = true;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Added to favourites"))
-                    );
-                  }
-                },
-              ),
-            ),
-            ]
+          Stack(
+            children: [
+              photo.image,
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: isError || isLoading 
+                  ? null 
+                  : () {
+                    _showDetails(context);
+                  },
+                  onLongPress: () {
+                    if(!photo.favourite) {
+                      storeController!.addPhoto(photo);
+                      photo.favourite = true;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Added to favourites"))
+                      );
+                    }
+                  },
                 ),
-            ),
-            );
+              ),
+              ]
+                  ),
+              ),
+              );
   }
 }

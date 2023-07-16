@@ -32,7 +32,6 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
       ref.read(loadingProvider.notifier).state = false;
 
     });
-    print("population");
   }
 
   bool canUpdate = true;
@@ -65,7 +64,6 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
     final controller = ref.watch(photoListController);
-    // print(controller.toString() + "1231231");
     final storedController = ref.watch(storedImageController);
     if(storedController != null) {
       storedData = storedController.toList();

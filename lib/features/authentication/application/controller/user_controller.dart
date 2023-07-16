@@ -20,9 +20,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
 
   Future<void> storeUser(String username, String rawPassword) async {
     state = const AsyncValue.loading();
-    await Future.delayed(const Duration(seconds: 1));
-
-    if(await userExists(username)) {
+    if (await userExists(username)) {
       state = AsyncValue.error(MyError(errorMessage: "Username already exists. Try logging in.", location: "storeUser"), StackTrace.current);
       return;
     }
@@ -40,7 +38,6 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
 
   Future<void> authenticateUser(String username, String rawPassword) async {
     state = const AsyncLoading();
-    await Future.delayed(const Duration(seconds: 1));
     final result = _userRepository().getUser(username);
     if(result.isLeft) {
       state = AsyncValue.error(result.left, StackTrace.current);

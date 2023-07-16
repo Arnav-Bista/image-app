@@ -2,11 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gal/gal.dart';
 import 'package:images/features/image/application/controller/stored_image_controller.dart';
 import 'package:images/features/image/infrastructure/model/photo.dart';
 import 'package:images/features/image/presentation/widgets/photo_full_screen.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
@@ -37,20 +36,20 @@ class _PhotoDetailsState extends ConsumerState<PhotoDetails> {
       isDownloading = true;
     });
     String message = "";
-    // final imagePath = "${Directory.systemTemp.path}/${widget.photo.getName()}";
-    // final file = File(imagePath);
+    String path = "/storage/emulated/0/ImageApp/";
+    print("BEFORE REQUESTI");
+    await Permission.storage.request();
+    await Permission.manageExternalStorage.request();
+    print("AFTER REQUESTI");
     try{
-      Directory? directory;
-      if (Platform.isIOS) {
-        directory = await getApplicationDocumentsDirectory();
+      if(await Permission.storage.request().isDenied) {
+        message = "No access";
       }
       else {
-        directory = Directory('/storage/emulated/0/Download');
-        if(!await directory.exists()) {
-          directory = await getExternalStorageDirectory();
-        }
-      }
-        final path = "${directory!.path}/${widget.photo.getName()}.jpg";
+        print("IN ELSE");
+        Directory directory = await Directory(path).create();
+        print("CREATE");
+        path += "${widget.photo.getName()}.jpg";
         final file = File(path);
         final res = await http.get(Uri.parse(widget.photo.src));
         if(res.statusCode == 200) {
@@ -58,23 +57,13 @@ class _PhotoDetailsState extends ConsumerState<PhotoDetails> {
           message = "Downloaded!";
         }
         else {
-          message = "Network Error";
+          message = "Server Error";
         }
-      // if(await Gal.requestAccess()) {
-      //   final res = await http.get(Uri.parse(widget.photo.src));
-      //   if(res.statusCode == 200) {
-      //     await file.writeAsBytes(res.bodyBytes);
-      //     Gal.putImage(imagePath);
-      //     message = "Downloaded!";
-      //   }
-      //   else {
-      //     message = "Network Error";
-      //   }
-      // }
-
+      }
     }
     catch(e) {
-      message = e.toString();
+      message = "Network Error";
+      print(e);
     }
     setState(() {
       isDownloading = false;
@@ -132,76 +121,108 @@ class _PhotoDetailsState extends ConsumerState<PhotoDetails> {
                                 child: CircularProgressIndicator(),
                               );
                             },
+                            errorBuilder: (context, exception, stackTrace) {
+                              return const Center(
+                                child: Icon(Icons.error)
+                              );
+                            }
                           )
                         ),
-                      ),
-                      Positioned(
-                        right: 10,
-                        top: 10,
-                        child: 
-                        GestureDetector(
-                          onTap: () 
-                          {
-                            setState(() {
-                              isFaviourite = !isFaviourite;
-                              widget.photo.favourite = !widget.photo.favourite;
-                              if(isFaviourite) {
-                                storedController.add(widget.photo);
-                              }
-                              else {
-                                storedController.remove(widget.photo);
-                              }
-                            });
-                          },
-                          child: 
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(50),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black54,
-                                  spreadRadius: 1.5,
-                                  blurRadius: 15,
-                                )
-                              ]
-                            ),
-                            child: 
-                            isFaviourite 
-                            ? const Icon(
-                              Icons.star,
-                              color: Colors.yellow,
-                            )
-                            : const Icon(
-                              Icons.star_outline,
-                              color: Colors.yellow
-                            ),
-                      ),
-                      )
-                          ),
-                      ],
-                      ),
-                      ),
-                      ),
-                      Text(widget.photo.author),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            TextButton(onPressed: _launchUrl, child: const Text("Original")),
-                            TextButton(
-                              onPressed: isDownloading ? null : save,
-                              child: const Text("Download")),
-                            TextButton(onPressed: () => Share.share(widget.photo.shareSrc.toString()), child: const Text("Share"))
-                          ],
                         ),
-                      ),
-                      TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Back")) 
-                          ],
+                        Positioned(
+                          left: 10,
+                          top: 10,
+                          child: 
+                          GestureDetector(
+                            onTap: () 
+                            {
+                              setState(() {
+                                isFaviourite = !isFaviourite;
+                                widget.photo.favourite = !widget.photo.favourite;
+                                if(isFaviourite) {
+                                  storedController.add(widget.photo);
+                                }
+                                else {
+                                  storedController.remove(widget.photo);
+                                }
+                              });
+                            },
+                            child: 
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black54,
+                                    spreadRadius: 1.5,
+                                    blurRadius: 15,
+                                  )
+                                ]
+                              ),
+                              child: 
+                              isFaviourite 
+                              ? const Icon(
+                                Icons.star,
+                                color: Colors.yellow,
+                              )
+                              : const Icon(
+                                Icons.star_outline,
+                                color: Colors.yellow
+                              ),
+                        ),
+                        ),
+                        ),
+                        Positioned(
+                          right: 10,
+                          top: 10,
+                          child: 
+                          GestureDetector(
+                            onTap: () 
+                            {
+                              Navigator.of(context).pop();
+                            },
+                            child: 
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black54,
+                                    spreadRadius: 1.5,
+                                    blurRadius: 15,
+                                  )
+                                ]
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                              )
+                            ),
+                        ),
+                        ),
+                        ],
+                        ),
+                        ),
+                        ),
+                        Text(widget.photo.author),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              TextButton(onPressed: _launchUrl, child: const Text("Original")),
+                              TextButton(
+                                onPressed: isDownloading ? null : save,
+                                child: const Text("Download")),
+                              TextButton(onPressed: () => Share.share(widget.photo.shareSrc.toString()), child: const Text("Share"))
+                            ],
                           ),
-                          ),
-                          ),
-                          );
+                        ),
+                        ],
+                        ),
+                        ),
+                        ),
+                        );
   }
 }
 
