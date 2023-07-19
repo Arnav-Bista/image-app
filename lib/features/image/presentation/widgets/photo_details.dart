@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:images/features/image/application/controller/downloaded_image_controller.dart';
 import 'package:images/features/image/application/controller/stored_image_controller.dart';
 import 'package:images/features/image/infrastructure/model/photo.dart';
 import 'package:images/features/image/presentation/widgets/photo_full_screen.dart';
@@ -25,7 +26,7 @@ class _PhotoDetailsState extends ConsumerState<PhotoDetails> {
 
   Future<void> _launchUrl() async {
     if(!await launchUrl(widget.photo.shareSrc)){
-      throw Exception("Couldnt launch url");
+      throw Exception("Couldn't launch url");
     }
   }
 
@@ -35,46 +36,17 @@ class _PhotoDetailsState extends ConsumerState<PhotoDetails> {
     setState(() {
       isDownloading = true;
     });
-    String message = "";
-    String path = "/storage/emulated/0/ImageApp/";
-    print("BEFORE REQUESTI");
-    await Permission.storage.request();
-    await Permission.manageExternalStorage.request();
-    print("AFTER REQUESTI");
-    try{
-      if(await Permission.storage.request().isDenied) {
-        message = "No access";
-      }
-      else {
-        print("IN ELSE");
-        Directory directory = await Directory(path).create();
-        print("CREATE");
-        path += "${widget.photo.getName()}.jpg";
-        final file = File(path);
-        final res = await http.get(Uri.parse(widget.photo.src));
-        if(res.statusCode == 200) {
-          await file.writeAsBytes(res.bodyBytes);
-          message = "Downloaded!";
-        }
-        else {
-          message = "Server Error";
-        }
-      }
+    if(context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(
+            await ref.read(storedImageController.notifier).saveImage(widget.photo)
+        ))
+      );
     }
-    catch(e) {
-      message = "Network Error";
-      print(e);
-    }
+    ref.read(downloadedImageController.notifier).populate();
     setState(() {
       isDownloading = false;
     });
-
-    if(context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message))
-      );
-    }
-
   }
 
 
@@ -83,6 +55,9 @@ class _PhotoDetailsState extends ConsumerState<PhotoDetails> {
     bool isFaviourite = widget.photo.favourite;
 
     final storedController = ref.watch(storedImageController.notifier);
+    if (ref.read(storedImageController)!.data.containsKey(widget.photo.id)){
+      widget.photo.favourite = true;
+    }
 
     final double width = MediaQuery.of(context).size.width * 0.8;
     return Dialog(
@@ -96,7 +71,7 @@ class _PhotoDetailsState extends ConsumerState<PhotoDetails> {
               GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                    return PhotoFullScreen(photo: widget.photo);
+                    return PhotoFullScreen(image: widget.photo.hiImage);
                   }));
                 },
                 child: 

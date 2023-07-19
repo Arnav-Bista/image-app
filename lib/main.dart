@@ -8,7 +8,12 @@ import 'package:images/features/image/image_screen.dart';
 import 'package:images/features/image/infrastructure/model/favourites.dart';
 import 'package:images/features/image/infrastructure/model/photo.dart';
 
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
 void main() async {
+
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await Hive.initFlutter();
 
@@ -18,8 +23,10 @@ void main() async {
   await Hive.openBox<User>("users");
   await Hive.openBox<Favourites>("userdata");
 
+  FlutterNativeSplash.remove();
   runApp(ProviderScope(child: MyApp()));
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -29,9 +36,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(
         colorSchemeSeed: const Color(0xff6750a4), 
-        textTheme: GoogleFonts.robotoTextTheme(),
+        textTheme: GoogleFonts.dmSansTextTheme(),
         useMaterial3: true,
-        ),
+      ),
       home: Authentication(),
       // home: ImageScreen()
     );

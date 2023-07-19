@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:images/features/image/infrastructure/model/photo.dart';
 
 class PhotoFullScreen extends StatelessWidget {
-  const PhotoFullScreen({super.key, required this.photo});
+  const PhotoFullScreen({super.key, required this.image});
 
-  final Photo photo;
+  final Image image;
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class PhotoFullScreen extends StatelessWidget {
         child: Hero(
           tag: "fullScreen",
           child: Image(
-            image: photo.hiImage.image,
+            image:image.image,
             fit: BoxFit.contain,
             height: double.infinity,
             width: double.infinity,

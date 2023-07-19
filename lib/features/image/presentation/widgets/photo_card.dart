@@ -39,9 +39,6 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
     }
     if(res.isRight) {
       photo = res.right;
-      if (ref.read(storedImageController)!.data.containsKey(photo.id)){
-        photo.favourite = true;
-      }
     }
     else{
       isError = true;
@@ -67,7 +64,7 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
 
   @override
   Widget build(BuildContext context) {
-    final storeController = ref.read(storedImageController);
+    final storeController = ref.read(storedImageController.notifier);
     return SizedBox(
       child: Card(
         child: isLoading 
@@ -98,7 +95,10 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
         : 
           Stack(
             children: [
-              photo.image,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: photo.image,
+              ),
               Material(
                 color: Colors.transparent,
                 child: InkWell(
@@ -109,7 +109,7 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
                   },
                   onLongPress: () {
                     if(!photo.favourite) {
-                      storeController!.addPhoto(photo);
+                      storeController.add(photo);
                       photo.favourite = true;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Added to favourites"))
@@ -118,8 +118,8 @@ class _PhotoCardState extends ConsumerState<PhotoCard> {
                   },
                 ),
               ),
-              ]
-                  ),
+              ],
+              ),
               ),
               );
   }

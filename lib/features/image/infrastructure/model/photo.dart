@@ -50,7 +50,7 @@ class Photo {
 
   static int photoSize = 300;
 
-  final DateFormat df = DateFormat("mm-hh-dd-MM-YYYY");
+  final DateFormat df = DateFormat("ss-mm-hh-dd-MM-yyyy");
 
   Photo({
     required this.id,
@@ -89,7 +89,7 @@ class Photo {
   
   String getName() {
     String authorName = author.replaceAllMapped(RegExp(" +"), (match) => "_");
-    return authorName + df.format(DateTime.now());
+    return "$authorName-${df.format(DateTime.now())}";
   }
 
 

@@ -45,8 +45,14 @@ class _SavedPhotoCardState extends ConsumerState<SavedPhotoCard> {
     }
 
     return SizedBox(
-      child: Card(
-        child: Stack(
+      child: 
+      ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Card(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+        child: 
+        Stack(
           children: [
             Image(
             image: widget.result.image.image,
@@ -106,6 +112,8 @@ class _SavedPhotoCardState extends ConsumerState<SavedPhotoCard> {
                 ),
                 ),
                 ],
+                ),
+        ),
                 ),
                 ),
                 );

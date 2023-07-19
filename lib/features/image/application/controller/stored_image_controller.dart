@@ -1,5 +1,6 @@
 
 import 'dart:collection';
+import 'dart:io';
 
 import 'package:either_dart/either.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,9 +8,12 @@ import 'package:images/core/widgets/my_error.dart';
 import 'package:images/features/authentication/application/controller/user_controller.dart';
 import 'package:images/features/authentication/infrastructure/models/user.dart';
 import 'package:images/features/authentication/infrastructure/repository/user_repository.dart';
+import 'package:images/features/image/application/controller/downloaded_image_controller.dart';
 import 'package:images/features/image/infrastructure/model/favourites.dart';
 import 'package:images/features/image/infrastructure/model/photo.dart';
 import 'package:images/features/image/infrastructure/repository/stored_image_repository.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
 
 final storedImageController = StateNotifierProvider<StoredImageController, Favourites?>((ref) => StoredImageController(ref: ref));
 
@@ -27,19 +31,11 @@ class StoredImageController extends StateNotifier<Favourites?> {
     final result = await ref.read(userController).whenOrNull(data: (data) async {
       return await _storedImageRepository().getFavourites(data!.username);
     });
-    // TODO Remove development 
     if(result == null) {
-      final newRes = await _storedImageRepository().getFavourites("test");
-      if(newRes.isLeft) {
-        state = Favourites(data: {});
-      }
-      else {
-        state = newRes.right;
-      }
+      state = Favourites(data: {});
       return;
     }
     if(result.isLeft) {
-      print("Empty");
       state = Favourites(data: {});
     }
     else {
@@ -61,9 +57,11 @@ class StoredImageController extends StateNotifier<Favourites?> {
   void save() {
     User? user = _userRepository().getCurrentUser();
     if(user == null) {
+      print("NULLLL");
       throw Exception("USER IS NULL");
     }
     _storedImageRepository().storeFavourites(user.username, state!);
+    ref.read(downloadedImageController.notifier).populate();
 
   }
 
@@ -112,7 +110,6 @@ class StoredImageController extends StateNotifier<Favourites?> {
     }
     clearDeletionArea();
     state = Favourites(data: state!.data);
-    print(state!.data);
     save();
   }
 
@@ -121,7 +118,36 @@ class StoredImageController extends StateNotifier<Favourites?> {
   }
 
   void clearDeletionArea() {
-    deletionArea = HashSet();
+    deletionArea.clear();
+  }
+
+  Future<String> saveImage(Photo photo) async {
+    const String path = "/storage/emulated/0/ImageApp/";
+    PermissionStatus status = await Permission.storage.request();
+    try{
+      if(status.isDenied || status.isPermanentlyDenied){
+        return "No access, please enable permissions in app settings.";
+      }
+      await Directory(path).create();
+      String imagePath = "$path${photo.getName()}.jpg";
+      File file = File(imagePath);
+      if(await file.exists()) {
+        return saveImage(photo);
+      }
+      final res = await http.get(Uri.parse(photo.src));
+      if(res.statusCode == 200) {
+        await file.writeAsBytes(res.bodyBytes);
+        return "Downloaded!";
+      }
+      else {
+        return "Server Error";
+      }
+
+    }
+    catch(e) {
+      print(e);
+      return e.toString();
+    }
   }
 
 }
