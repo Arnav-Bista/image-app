@@ -10,6 +10,10 @@ import 'package:images/features/image/infrastructure/model/photo.dart';
 
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
+
+final isDarkTheme = StateProvider((ref) => false);
+
+
 void main() async {
 
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -28,17 +32,25 @@ void main() async {
 }
 
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
+  ThemeData _buildTheme(brightness) {
+    var baseTheme = ThemeData(brightness: brightness,
+      colorSchemeSeed: const Color(0xff6750a4), 
+    );
+
+    return baseTheme.copyWith(
+      textTheme: GoogleFonts.dmSansTextTheme(baseTheme.textTheme),
+      useMaterial3: true,
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dark = ref.watch(isDarkTheme);
     return MaterialApp(
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xff6750a4), 
-        textTheme: GoogleFonts.dmSansTextTheme(),
-        useMaterial3: true,
-      ),
+      theme: _buildTheme(dark ? Brightness.dark : Brightness.light),
       home: Authentication(),
       // home: ImageScreen()
     );

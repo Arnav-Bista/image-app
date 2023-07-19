@@ -12,6 +12,7 @@ import 'package:images/features/image/presentation/widgets/app_bar_buttons.dart'
 import 'package:images/features/image/presentation/widgets/photo_card.dart';
 import 'package:images/features/image/presentation/widgets/photo_grid.dart';
 import 'package:images/features/image/presentation/widgets/saved_photo_card.dart';
+import 'package:images/main.dart';
 
 class ImageScreen extends ConsumerStatefulWidget {
   const ImageScreen({super.key});
@@ -53,10 +54,19 @@ class _ImageScreenState extends ConsumerState<ImageScreen> {
     final storedImage = ref.read(storedImageController.notifier);
     final downloadedImage = ref.watch(downloadedImageController.notifier);
 
+
+    final isdark = ref.read(isDarkTheme.notifier);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Images"),
         actions: [
+          TextButton(
+            child: Icon(isdark.state ? Icons.dark_mode : Icons.light_mode),
+            onPressed: () {
+              isdark.state = !isdark.state;
+            },
+          ),
           selectionMode 
           ? AppBarButtons(selectedIndex: selectedIndex)
           : network 
